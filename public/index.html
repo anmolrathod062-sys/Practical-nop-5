@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Student Management System</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#f4f6f9;
+}
+
+/* Welcome Page */
+
+#welcomePage{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#2563eb,#1e3a8a);
+}
+
+.welcome-box{
+background:white;
+padding:50px;
+border-radius:15px;
+text-align:center;
+width:500px;
+box-shadow:0 0 20px rgba(0,0,0,0.2);
+}
+
+.welcome-box h1{
+color:#2563eb;
+margin-bottom:10px;
+}
+
+.welcome-box p{
+font-size:18px;
+color:#555;
+margin-top:10px;
+}
+
+.start-btn{
+background:#2563eb;
+color:white;
+padding:15px 40px;
+border:none;
+border-radius:8px;
+font-size:18px;
+cursor:pointer;
+margin-top:25px;
+}
+
+.start-btn:hover{
+background:#1e40af;
+}
+
+/* Main App */
+
+#mainApp{
+display:none;
+}
+
+header{
+background:#2563eb;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.container{
+width:90%;
+max-width:1200px;
+margin:20px auto;
+}
+
+.card{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+input{
+width:100%;
+padding:12px;
+margin:10px 0;
+border:1px solid #ccc;
+border-radius:5px;
+}
+
+button{
+padding:10px 15px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+color:white;
+margin:2px;
+}
+
+.add{
+background:green;
+}
+
+.edit{
+background:orange;
+}
+
+.delete{
+background:red;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+}
+
+th{
+background:#2563eb;
+color:white;
+padding:12px;
+}
+
+td{
+border:1px solid #ddd;
+padding:12px;
+text-align:center;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="welcomePage">
+
+<div class="welcome-box">
+
+<h1>WELCOME TO</h1>
+
+<h1>STUDENT MANAGEMENT SYSTEM</h1>
+
+<p>
+Manage Student Records Using
+Node.js and Express.js
+</p>
+
+<button
+class="start-btn"
+onclick="startApp()">
+START
+</button>
+
+</div>
+
+</div>
+
+<div id="mainApp">
+
+<header>
+
+<h1>Student Management System</h1>
+
+<p>
+CRUD Operations Using Node.js & Express.js
+</p>
+
+</header>
+
+<div class="container">
+
+<div class="card">
+
+<h2>Add / Update Student</h2>
+
+<input
+type="text"
+id="name"
+placeholder="Enter Student Name">
+
+<input
+type="email"
+id="email"
+placeholder="Enter Email">
+
+<input
+type="text"
+id="year"
+placeholder="Enter Year (FE / SE / TE / BE)">
+
+<input
+type="text"
+id="branch"
+placeholder="Enter Branch">
+
+<button
+class="add"
+id="addBtn"
+onclick="addStudent()">
+Add Student
+</button>
+
+<h2 style="margin-top:20px;">
+Students List
+</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Name</th>
+<th>Email</th>
+<th>Year</th>
+<th>Branch</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="studentTable">
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let editId = null;
+
+function startApp(){
+
+document.getElementById(
+"welcomePage"
+).style.display = "none";
+
+document.getElementById(
+"mainApp"
+).style.display = "block";
+
+loadStudents();
+}
+
+async function loadStudents(){
+
+const response =
+await fetch("/api/students");
+
+const students =
+await response.json();
+
+let rows = "";
+
+students.forEach(student=>{
+
+rows += `
+<tr>
+
+<td>${student.id}</td>
+<td>${student.name}</td>
+<td>${student.email}</td>
+<td>${student.year}</td>
+<td>${student.branch}</td>
+
+<td>
+
+<button
+class="edit"
+onclick="fillData(
+${student.id},
+'${student.name}',
+'${student.email}',
+'${student.year}',
+'${student.branch}'
+)">
+Edit
+</button>
+
+<button
+class="delete"
+onclick="deleteStudent(${student.id})">
+Delete
+</button>
+
+</td>
+
+</tr>
+`;
+
+});
+
+document.getElementById(
+"studentTable"
+).innerHTML = rows;
+
+}
+
+function fillData(
+id,
+name,
+email,
+year,
+branch
+){
+
+editId = id;
+
+document.getElementById("name").value = name;
+document.getElementById("email").value = email;
+document.getElementById("year").value = year;
+document.getElementById("branch").value = branch;
+
+document.getElementById(
+"addBtn"
+).innerText = "Update Student";
+
+}
+
+async function addStudent(){
+
+const name =
+document.getElementById("name").value;
+
+const email =
+document.getElementById("email").value;
+
+const year =
+document.getElementById("year").value;
+
+const branch =
+document.getElementById("branch").value;
+
+if(
+name.trim()==="" ||
+email.trim()==="" ||
+year.trim()==="" ||
+branch.trim()===""
+){
+alert("Please Fill All Fields");
+return;
+}
+
+if(editId===null){
+
+await fetch("/api/students",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name,
+email,
+year,
+branch
+})
+
+});
+
+}
+else{
+
+await fetch(`/api/students/${editId}`,{
+
+method:"PUT",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+name,
+email,
+year,
+branch
+})
+
+});
+
+editId = null;
+
+document.getElementById(
+"addBtn"
+).innerText = "Add Student";
+
+}
+
+document.getElementById("name").value="";
+document.getElementById("email").value="";
+document.getElementById("year").value="";
+document.getElementById("branch").value="";
+
+loadStudents();
+
+}
+
+async function deleteStudent(id){
+
+const result =
+confirm("Delete Student ?");
+
+if(!result){
+return;
+}
+
+await fetch(`/api/students/${id}`,{
+method:"DELETE"
+});
+
+loadStudents();
+
+}
+
+</script>
+
+</body>
+</html>
